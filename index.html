@@ -78,15 +78,17 @@
     </td></tr>
   </table>
 
-  <!-- 🔥 AMOUNT FETCH KARO GITHUB SE -->
+  <!-- 🔥 AMOUNT FETCH KARO ISSUE SE -->
   <script>
     (async function() {
       try {
-        // raw.githubusercontent.com se data.json fetch karo
-        const response = await fetch('https://raw.githubusercontent.com/PersonalLoan997/sip-email/main/data.json');
+        const response = await fetch('https://api.github.com/repos/PersonalLoan997/sip-email/issues/1');
         if (response.ok) {
           const data = await response.json();
-          const formatted = "Rs. " + Number(data.amount).toLocaleString("en-IN", {
+          const title = data.title || "Amount: 0";
+          const amountVal = title.replace("Amount: ", "").trim();
+          
+          const formatted = "Rs. " + Number(amountVal).toLocaleString("en-IN", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
           });
@@ -94,7 +96,7 @@
           document.getElementById("balanceAmount2").textContent = formatted;
         }
       } catch (e) {
-        console.log("Amount load nahi hua, default 0 dikha rahe hain");
+        console.log("Error loading amount");
       }
     })();
   </script>
