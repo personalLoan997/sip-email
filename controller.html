@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amount Controller – GitHub API</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0f2b5c 0%,#1e40af 100%); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif; padding:20px; }
+    .card { background:#fff; border-radius:16px; padding:32px 28px; width:100%; max-width:440px; box-shadow:0 20px 50px rgba(0,0,0,0.25); }
+    h1 { margin:0 0 6px 0; font-size:22px; color:#1a202c; }
+    .sub { margin:0 0 22px 0; font-size:13px; color:#64748b; }
+    label { display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px; }
+    .input-wrap { position:relative; margin-bottom:18px; }
+    .input-wrap span { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-weight:700; color:#64748b; font-size:15px; }
+    input[type="number"] { width:100%; padding:14px 14px 14px 44px; border:2px solid #e2e8f0; border-radius:10px; font-size:16px; font-weight:600; color:#0f172a; outline:none; }
+    input:focus { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.15); }
+    button { width:100%; padding:14px; background:#2563eb; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; }
+    button:hover { background:#1d4ed8; }
+    button:disabled { background:#94a3b8; cursor:not-allowed; }
+    .msg { margin-top:14px; padding:10px 14px; border-radius:8px; font-size:13px; font-weight:600; text-align:center; display:none; }
+    .msg.success { display:block; background:#dcfce7; color:#166534; }
+    .msg.error { display:block; background:#fee2e2; color:#991b1b; }
+    .history-box { margin-top:26px; padding:16px 18px; background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #f59e0b; border-radius:10px; }
+    .history-box h3 { margin:0 0 8px 0; font-size:13px; text-transform:uppercase; letter-spacing:1px; color:#92400e; }
+    .history-amount { font-size:26px; font-weight:800; color:#78350f; margin:0; }
+    .link-row { margin-top:20px; text-align:center; font-size:13px; }
+    .link-row a { color:#2563eb; font-weight:600; text-decoration:none; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>💰 Amount Controller</h1>
+    <p class="sub">GitHub API ke through amount save karein</p>
+
+    <form id="amountForm">
+      <label for="amountInput">Enter Amount</label>
+      <div class="input-wrap">
+        <span>Rs.</span>
+        <input type="number" id="amountInput" placeholder="e.g. 320" min="0" step="0.01" required />
+      </div>
+      <button type="submit" id="submitBtn">Submit Amount</button>
+    </form>
+
+    <div id="message" class="msg"></div>
+
+    <div class="history-box">
+      <h3>Last Saved Amount (GitHub se)</h3>
+      <p class="history-amount" id="lastAmount">Loading...</p>
+    </div>
+
+    <div class="link-row"><a href="index.html" target="_blank">➡️ View Email (index.html)</a></div>
+  </div>
+
+  <script>
+    // ============================================================
+    //  ⚠️ YAHAN APNA PAT, USERNAME, AUR REPO NAME DALEIN
+    // ============================================================
+    const GITHUB_TOKEN = "ghp_YOUR_TOKEN_HERE";  // 👈 PAT yahan
+    const OWNER = "YOUR_USERNAME";               // 👈 GitHub username
+    const REPO  = "YOUR_REPO";                   // 👈 Repo name
+    const FILE_PATH = "data.json";               // 👈 File ka path
+    const BRANCH = "main";                       // 👈 Branch name
+
+    const API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+
+    const form = document.getElementById("amountForm");
+    const input = document.getElementById("amountInput");
+    const message = document.getElementById("message");
+    const lastAmount = document.getElementById("lastAmount");
+    const submitBtn = document.getElementById("submitBtn");
+
+    function formatINR(num) {
+      return "Rs. " + Number(num).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = "msg " + type;
+      setTimeout(() => { message.className = "msg"; }, 4000);
+    }
+
+    // ------------------------------------------------------------
+    //  GitHub se current data.json fetch karo
+    // ------------------------------------------------------------
+    async function loadCurrentAmount() {
+      try {
+        const res = await fetch(API_URL + `?ref=${BRANCH}`, {
+          headers: { "Authorization": `token ${GITHUB_TOKEN}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const content = JSON.parse(atob(data.content));
+          lastAmount.textContent = formatINR(content.amount || 0);
+          return data.sha; // file sha zaroori hai update ke liye
+        } else {
+          lastAmount.textContent = "File nahi mili";
+          return null;
+        }
+      } catch (e) {
+        lastAmount.textContent = "Error loading";
+        return null;
+      }
+    }
+
+    // ------------------------------------------------------------
+    //  GitHub API se data.json update karo
+    // ------------------------------------------------------------
+    async function updateAmount(newAmount, sha) {
+      const content = JSON.stringify({ amount: newAmount }, null, 2);
+      const encoded = btoa(unescape(encodeURIComponent(content))); // Unicode safe base64
+
+      const body = {
+        message: `Update amount to ${newAmount}`,
+        content: encoded,
+        branch: BRANCH
+      };
+      if (sha) body.sha = sha; // agar file pehle se hai toh sha chahiye
+
+      const res = await fetch(API_URL, {
+        method: "PUT",
+        headers: {
+          "Authorization": `token ${GITHUB_TOKEN}`,
+          "Content-Type": "application/json",
+          "Accept": "application/vnd.github+json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Update failed");
+      }
+      return await res.json();
+    }
+
+    // ------------------------------------------------------------
+    //  Form submit
+    // ------------------------------------------------------------
+    form.addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const value = input.value.trim();
+      if (!value || isNaN(value) || Number(value) < 0) {
+        showMessage("❌ Valid amount enter karein", "error");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Saving...";
+
+      try {
+        const sha = await loadCurrentAmount(); // current sha lo
+        await updateAmount(Number(value), sha);
+        lastAmount.textContent = formatINR(Number(value));
+        input.value = "";
+        showMessage("✅ Amount saved! index.html refresh karein.", "success");
+      } catch (err) {
+        showMessage("❌ Error: " + err.message, "error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit Amount";
+      }
+    });
+
+    // ------------------------------------------------------------
+    //  Page load pe current amount dikhao
+    // ------------------------------------------------------------
+    loadCurrentAmount();
+  </script>
+
+</body>
+</html>
