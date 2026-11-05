@@ -2,74 +2,272 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Amount Controller</title>
   <style>
-    * { box-sizing: border-box; }
-    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0f2b5c 0%,#1e40af 100%); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif; padding:20px; }
-    .card { background:#fff; border-radius:16px; padding:32px 28px; width:100%; max-width:440px; box-shadow:0 20px 50px rgba(0,0,0,0.25); }
-    h1 { margin:0 0 6px 0; font-size:22px; color:#1a202c; }
-    .sub { margin:0 0 22px 0; font-size:13px; color:#64748b; }
-    label { display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px; }
-    .input-wrap { position:relative; margin-bottom:18px; }
-    .input-wrap span { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-weight:700; color:#64748b; font-size:15px; }
-    input[type="number"] { width:100%; padding:14px 14px 14px 44px; border:2px solid #e2e8f0; border-radius:10px; font-size:16px; font-weight:600; color:#0f172a; outline:none; }
-    input:focus { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.15); }
-    button { width:100%; padding:14px; background:#2563eb; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; }
-    button:hover { background:#1d4ed8; }
-    button:disabled { background:#94a3b8; }
-    .msg { margin-top:14px; padding:10px 14px; border-radius:8px; font-size:13px; font-weight:600; text-align:center; display:none; }
-    .msg.success { display:block; background:#dcfce7; color:#166534; }
-    .msg.error { display:block; background:#fee2e2; color:#991b1b; }
-    .history-box { margin-top:26px; padding:16px 18px; background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #f59e0b; border-radius:10px; }
-    .history-box h3 { margin:0 0 8px 0; font-size:13px; text-transform:uppercase; letter-spacing:1px; color:#92400e; }
-    .history-amount { font-size:26px; font-weight:800; color:#78350f; margin:0; }
-    .link-row { margin-top:20px; text-align:center; font-size:13px; }
-    .link-row a { color:#2563eb; font-weight:600; text-decoration:none; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #0f2b5c 0%, #1e40af 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      color: #1a202c;
+    }
+
+    .header {
+      padding: 24px 20px 10px;
+      text-align: center;
+      color: #ffffff;
+    }
+    .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .header p { font-size: 14px; color: #bfdbfe; }
+
+    .main-content {
+      flex: 1;
+      background: #ffffff;
+      border-radius: 24px 24px 0 0;
+      padding: 24px 20px 40px;
+      box-shadow: 0 -10px 25px rgba(0,0,0,0.1);
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      margin-top: 24px;
+    }
+    .section-title:first-child { margin-top: 0; }
+
+    /* Token Setup Box */
+    .token-setup {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .token-setup p { font-size: 13px; color: #64748b; margin-bottom: 12px; }
+    .token-input-row {
+      display: flex;
+      gap: 8px;
+    }
+    .token-input-row input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    .token-input-row button {
+      padding: 0 16px;
+      background: #0f172a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    .status-badge.active { background: #dcfce7; color: #166534; }
+    .status-badge.inactive { background: #fee2e2; color: #991b1b; }
+
+    /* Amount Form */
+    .amount-box {
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .amount-box label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748b;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .amount-input-wrap {
+      position: relative;
+      max-width: 250px;
+      margin: 0 auto 16px;
+    }
+    .amount-input-wrap span {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+    .amount-input-wrap input {
+      width: 100%;
+      padding: 16px 16px 16px 50px;
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      outline: none;
+      text-align: center;
+    }
+    .amount-input-wrap input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59,130,246,0.1);
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .submit-btn:hover { background: #1d4ed8; }
+    .submit-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    .msg {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      display: none;
+    }
+    .msg.success { display: block; background: #dcfce7; color: #166534; }
+    .msg.error { display: block; background: #fee2e2; color: #991b1b; }
+
+    /* History Box */
+    .history-card {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border: 2px solid #f59e0b;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+    }
+    .history-card h3 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #b45309;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .history-card .amount {
+      font-size: 32px;
+      font-weight: 800;
+      color: #78350f;
+    }
+
+    .view-email-btn {
+      display: block;
+      text-align: center;
+      margin-top: 24px;
+      padding: 14px;
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 700;
+      text-decoration: none;
+      border-radius: 12px;
+      font-size: 15px;
+    }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h1>💰 Amount Controller</h1>
-    <p class="sub">Comment ke through amount save karein</p>
+  <div class="header">
+    <h1>Amount Controller</h1>
+    <p>SIP amount set karein</p>
+  </div>
 
-    <form id="amountForm">
-      <label for="amountInput">Enter Amount</label>
-      <div class="input-wrap">
-        <span>Rs.</span>
-        <input type="number" id="amountInput" placeholder="e.g. 320" min="0" step="0.01" required />
+  <div class="main-content">
+    
+    <!-- TOKEN SETUP SECTION -->
+    <div id="tokenSection">
+      <div class="section-title">Step 1: Connect GitHub</div>
+      <div class="token-setup">
+        <p>GitHub Token daalein (Ye aapke phone mein save ho jayega, baar-baar nahi maangega)</p>
+        <div class="token-input-row">
+          <input type="password" id="tokenInput" placeholder="ghp_..." />
+          <button onclick="saveToken()">Save</button>
+        </div>
       </div>
-      <button type="submit" id="submitBtn">Submit Amount</button>
-    </form>
-
-    <div id="message" class="msg"></div>
-
-    <div class="history-box">
-      <h3>Last Saved Amount</h3>
-      <p class="history-amount" id="lastAmount">Loading...</p>
     </div>
 
-    <div class="link-row"><a href="index.html" target="_blank">➡️ View Email (index.html)</a></div>
+    <!-- STATUS BADGE -->
+    <div id="statusBadge" class="status-badge inactive">
+      ⚠️ Not Connected
+    </div>
+
+    <!-- AMOUNT SECTION -->
+    <div class="section-title">Step 2: Enter Amount</div>
+    <div class="amount-box">
+      <label>New SIP Amount</label>
+      <div class="amount-input-wrap">
+        <span>Rs.</span>
+        <input type="number" id="amountInput" placeholder="0" min="0" step="0.01" />
+      </div>
+      <button class="submit-btn" id="submitBtn" onclick="submitAmount()">Update Amount</button>
+      <div id="message" class="msg"></div>
+    </div>
+
+    <!-- HISTORY SECTION -->
+    <div class="section-title">Last Saved Amount</div>
+    <div class="history-card">
+      <h3>Currently Active</h3>
+      <div class="amount" id="lastAmount">Rs. 0.00</div>
+    </div>
+
+    <a href="index.html" target="_blank" class="view-email-btn">➡️ View Email Page</a>
+
   </div>
 
   <script>
     // ============================================================
-    // AAPKI DETAILS YAHAN HAIN
+    // AAPKI DETAILS
     // ============================================================
     const OWNER = "PersonalLoan997";
     const REPO  = "sip-email";
     const ISSUE_NUMBER = "1"; 
-    const MY_TOKEN = "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"; // 👈 Token yahan hai
 
     const API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/issues/${ISSUE_NUMBER}`;
-
-    const form = document.getElementById("amountForm");
-    const input = document.getElementById("amountInput");
+    
+    // Elements
+    const tokenSection = document.getElementById("tokenSection");
+    const tokenInput = document.getElementById("tokenInput");
+    const statusBadge = document.getElementById("statusBadge");
+    const amountInput = document.getElementById("amountInput");
+    const submitBtn = document.getElementById("submitBtn");
     const message = document.getElementById("message");
     const lastAmount = document.getElementById("lastAmount");
-    const submitBtn = document.getElementById("submitBtn");
 
+    // Get token from localStorage
+    let MY_TOKEN = localStorage.getItem("sip_gh_token");
+
+    // Format Currency
     function formatINR(num) {
       return "Rs. " + Number(num).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
@@ -80,19 +278,44 @@
       setTimeout(() => { message.className = "msg"; }, 4000);
     }
 
-    // Pichhla amount nikalne ka function
+    // Update UI based on token presence
+    function updateUIBasedOnToken() {
+      if (MY_TOKEN && MY_TOKEN.trim() !== "") {
+        tokenSection.style.display = "none";
+        statusBadge.className = "status-badge active";
+        statusBadge.innerHTML = "✅ GitHub Connected";
+        loadCurrentAmount();
+      } else {
+        tokenSection.style.display = "block";
+        statusBadge.className = "status-badge inactive";
+        statusBadge.innerHTML = "⚠️ Not Connected";
+        lastAmount.textContent = "Rs. 0.00";
+      }
+    }
+
+    // Save Token function
+    window.saveToken = function() {
+      const tk = tokenInput.value.trim();
+      if (tk === "" || !tk.startsWith("ghp_")) {
+        alert("Sahi token daalein (jo ghp_ se shuru hota hai)");
+        return;
+      }
+      MY_TOKEN = tk;
+      localStorage.setItem("sip_gh_token", MY_TOKEN);
+      tokenInput.value = "";
+      updateUIBasedOnToken();
+    };
+
+    // Load Current Amount
     async function loadCurrentAmount() {
+      if (!MY_TOKEN) return;
       try {
         const res = await fetch(`${API_URL}/comments`, {
-          headers: {
-            "Authorization": `token ${MY_TOKEN}`
-          }
+          headers: { "Authorization": `token ${MY_TOKEN}` }
         });
-        
         if (res.ok) {
           const comments = await res.json();
           let amt = "0";
-          
           if (comments.length > 0) {
             const lastComment = comments[comments.length - 1].body;
             if(lastComment.includes("Amount: ")) {
@@ -100,54 +323,62 @@
             }
           }
           lastAmount.textContent = formatINR(amt);
-        } else {
-          lastAmount.textContent = "Rs. 0.00";
+        } else if (res.status === 401) {
+          // Token invalid or deleted
+          localStorage.removeItem("sip_gh_token");
+          MY_TOKEN = null;
+          updateUIBasedOnToken();
+          statusBadge.innerHTML = "❌ Token Invalid. Re-enter.";
         }
       } catch (e) {
-        lastAmount.textContent = "Rs. 0.00";
+        console.log("Error loading");
       }
     }
 
-    // Naya amount save karne ka function (Token ke saath)
-    async function saveAmount(newAmount) {
-      const body = {
-        body: `Amount: ${newAmount}`
-      };
+    // Submit Amount function
+    window.submitAmount = async function() {
+      if (!MY_TOKEN) {
+        showMessage("❌ Pehle Token save karein!", "error");
+        return;
+      }
 
-      const res = await fetch(`${API_URL}/comments`, {
-        method: "POST",
-        headers: {
-          "Authorization": `token ${MY_TOKEN}`, // 👈 Token yahan use ho raha hai
-          "Content-Type": "application/json",
-          "Accept": "application/vnd.github+json"
-        },
-        body: JSON.stringify(body)
-      });
+      const value = amountInput.value.trim();
+      if (value === "" || isNaN(value)) {
+        showMessage("❌ Sahi amount daalein", "error");
+        return;
+      }
 
-      if (!res.ok) throw new Error("Failed");
-    }
-
-    form.addEventListener("submit", async function(e) {
-      e.preventDefault();
-      const value = input.value.trim();
-      
       submitBtn.disabled = true;
       submitBtn.textContent = "Saving...";
 
       try {
-        await saveAmount(value);
-        lastAmount.textContent = formatINR(Number(value));
-        input.value = "";
-        showMessage("✅ Amount saved successfully!", "success");
+        const body = { body: `Amount: ${value}` };
+        const res = await fetch(`${API_URL}/comments`, {
+          method: "POST",
+          headers: {
+            "Authorization": `token ${MY_TOKEN}`,
+            "Content-Type": "application/json",
+            "Accept": "application/vnd.github+json"
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (!res.ok) throw new Error("Failed");
+
+        lastAmount.textContent = formatINR(value);
+        amountInput.value = "";
+        showMessage("✅ Amount updated successfully!", "success");
       } catch (err) {
-        showMessage("❌ Error saving amount. Token check karein.", "error");
+        showMessage("❌ Error: Token galat hai ya permission nahi hai.", "error");
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = "Submit Amount";
+        submitBtn.textContent = "Update Amount";
       }
-    });
+    };
 
-    loadCurrentAmount();
+    // Initial Load
+    updateUIBasedOnToken();
+
   </script>
 </body>
 </html>
