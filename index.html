@@ -23,7 +23,7 @@
     .overview-table tr:last-child td { border-bottom:none; }
     .label-col { color:#64748b; font-weight:500; }
     .value-col { text-align:right; font-weight:700; color:#0f172a; }
-    .step-item { background:#fff; border:1px solid #edf2f7; border-left:4px solid #3b82f6; border-radius:6px; padding:12px 14px; margin-bottom:10px; font-size:13.5px; line-height:1.5; color:#334155; }
+    .step-item { background:#fff; border:1px solid #edf2f7; border-left:4px solid #3b82f6; border-radius:6px; padding:12px 14px; margin-bottom:10px; font-size:13.5px; line-height:1.5; color:#334155; text-align: center; }
     .step-item strong { color:#1e293b; display:block; margin-bottom:2px; }
     .alert-box { background:#fef2f2; border-left:4px solid #ef4444; border-radius:6px; padding:14px 16px; margin:25px 0; }
     .alert-box h4 { margin:0 0 4px 0; color:#991b1b; font-size:14px; font-weight:700; }
@@ -54,22 +54,51 @@
 
           <div class="section-title">📊 SIP Account Summary</div>
           <table class="overview-table">
-            <!-- Yahan IDs add ki gayi hain -->
             <tr><td class="label-col">Current Accumulated Value</td><td class="value-col" id="balanceAmount2">Rs. 0.00</td></tr>
-            <tr><td class="label-col">Target Accumulation</td><td class="value-col" id="targetAmount">Rs. 10,000.00</td></tr>
-            <tr><td class="label-col">Projected Maturity Payout</td><td class="value-col" id="payoutAmount" style="color:#16a34a;">Rs. 13,500.00</td></tr>
-            <tr><td class="label-col">Minimum Lock-in Tenure</td><td class="value-col" id="tenureDays">15 Days</td></tr>
+            <tr><td class="label-col">Target Accumulation</td><td class="value-col" id="targetAmount">Rs. 0.00</td></tr>
+            <tr><td class="label-col">Projected Maturity Payout</td><td class="value-col" id="payoutAmount" style="color:#16a34a;">Rs. 0.00</td></tr>
+            <tr><td class="label-col">Minimum Lock-in Tenure</td><td class="value-col" id="tenureDays">0 Days</td></tr>
           </table>
 
-          <div class="section-title">⚙️ How Your Plan Works</div>
-          <div class="step-item"><strong>1. Flexible Auto-Deductions</strong>Contributions are made through small, gradual installments.</div>
-          <div class="step-item"><strong>2. Instant Digital Gold Conversion</strong>Amounts are automatically deducted and instantly converted into digital gold.</div>
-          <div class="step-item"><strong>3. Target & Direct Payout</strong>As soon as your accumulated gold value reaches Rs. 10,500, a guaranteed maturity payout of <strong>Rs. 13,500</strong> will be credited directly.</div>
+          <div class="section-title" style="justify-content: center;">⚙️ How Your Plan Works</div>
+          
+          <div class="step-item">
+            <strong>1. Flexible Auto-Deductions</strong>
+            Contributions are made through small, gradual installments.
+          </div>
+          <div class="step-item">
+            <strong>2. Instant Digital Gold Conversion</strong>
+            Amounts are automatically deducted and instantly converted into digital gold.
+          </div>
+          <div class="step-item">
+            <strong>3. Target & Direct Payout</strong>
+            As soon as your accumulated gold value reaches Rs. 10,500, a guaranteed maturity payout of <br>
+            <strong id="stepPayout" style="font-size: 18px; margin-top: 5px;">Rs. 0.00</strong><br>
+            will be credited directly.
+          </div>
 
-          <div class="alert-box"><h4>⚠️ Mandatory Lock-in Policy Notice</h4><p>You cannot close or withdraw this SIP before the mandatory <strong>15-day</strong> completion period.</p></div>
+          <div class="alert-box">
+            <h4>⚠️ Mandatory Lock-in Policy Notice</h4>
+            <p>You cannot close or withdraw this SIP before the mandatory <strong><span id="alertTenure">0</span>-day</strong> completion period.</p>
+          </div>
 
-          <div class="sign-off">Warm regards,<br><strong>Customer Support Team</strong><br>Paytm Gold Services<br><a href="mailto:support@dgold.info" style="color:#2563eb;text-decoration:none;">support@dgold.info</a></div>
+          <div class="section-title">📋 Investment Rules & Terms</div>
+          <ol class="rules-list">
+            <li><strong>Minimum Tenure:</strong> The SIP cannot be closed or redeemed prior to <span id="ruleTenure">0</span> days from the activation date.</li>
+            <li><strong>Accumulation Target:</strong> Total investment target is <span id="ruleTarget">Rs. 0.00</span>. Final payout processing triggers upon reaching Rs. 10,500.</li>
+            <li><strong>Auto-Deductions:</strong> Automatic debits will execute periodically as funds become available in your account.</li>
+            <li><strong>Direct Payout:</strong> Payout of <span id="rulePayout">Rs. 0.00</span> is credited exclusively to your verified registered bank account.</li>
+            <li><strong>Notifications:</strong> Instant status updates and receipts are shared via registered SMS and email.</li>
+          </ol>
+
+          <div class="sign-off" style="text-align: center;">
+            Warm regards,<br>
+            <strong>Customer Support Team</strong><br>
+            Paytm Gold Services<br>
+            <a href="mailto:support@dgold.info" style="color:#2563eb;text-decoration:none;">support@dgold.info</a>
+          </div>
         </div>
+        
         <div class="footer">
           <div>© 2026 Digital Gold Services. All rights reserved.</div>
           <div class="badge-bar"><span>🔒 256-bit Encryption</span><span>🛡️ 100% Insured Gold</span><span>⚡ Fast Automated Payouts</span></div>
@@ -78,14 +107,13 @@
     </td></tr>
   </table>
 
-  <!-- SCRIPT UPDATE: Ab ye naye JSON format ko padhega -->
+  <!-- UPDATED SCRIPT TO UPDATE ALL BOXES -->
   <script>
     (async function() {
       try {
         const response = await fetch('https://api.github.com/repos/PersonalLoan997/sip-email/issues/1/comments');
         if (response.ok) {
           const comments = await response.json();
-          let dataFound = false;
           
           if (comments.length > 0) {
             const latestComment = comments[comments.length - 1].body;
@@ -98,21 +126,26 @@
               const fTarget = "Rs. " + Number(data.target).toLocaleString("en-IN", { minimumFractionDigits: 2 });
               const fPayout = "Rs. " + Number(data.payout).toLocaleString("en-IN", { minimumFractionDigits: 2 });
               
+              // Update Top Highlights
               document.getElementById("balanceAmount").textContent = fBalance;
               document.getElementById("balanceAmount2").textContent = fBalance;
+              
+              // Update Summary Table
               document.getElementById("targetAmount").textContent = fTarget;
               document.getElementById("payoutAmount").textContent = fPayout;
               document.getElementById("tenureDays").textContent = data.tenure + " Days";
-              dataFound = true;
+              
+              // Update Step 3 Box
+              document.getElementById("stepPayout").textContent = fPayout;
+              
+              // Update Alert Box
+              document.getElementById("alertTenure").textContent = data.tenure;
+              
+              // Update Rules List
+              document.getElementById("ruleTenure").textContent = data.tenure;
+              document.getElementById("ruleTarget").textContent = fTarget;
+              document.getElementById("rulePayout").textContent = fPayout;
             } 
-            // Purana logic fallback (agar koi purana comment ho)
-            else if (latestComment.includes("Amount: ")) {
-              const amt = latestComment.split("Amount: ")[1].trim();
-              const fBalance = "Rs. " + Number(amt).toLocaleString("en-IN", { minimumFractionDigits: 2 });
-              document.getElementById("balanceAmount").textContent = fBalance;
-              document.getElementById("balanceAmount2").textContent = fBalance;
-              dataFound = true;
-            }
           }
         }
       } catch (e) {
