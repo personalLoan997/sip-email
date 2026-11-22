@@ -69,7 +69,7 @@
     
     <div class="input-group">
       <label>Current Accumulated Balance</label>
-      <input type="number" id="valBalance" placeholder="e.g. 817" />
+      <input type="number" id="valBalance" placeholder="e.g. 7365" />
     </div>
 
     <div class="input-group">
@@ -98,6 +98,9 @@
     const message = document.getElementById("message");
     const submitBtn = document.getElementById("submitBtn");
 
+    let previousBalance = 0;
+    let existingLastAdded = 0;
+
     function showMessage(text, type) {
       message.textContent = text;
       message.className = "msg " + type;
@@ -106,10 +109,12 @@
 
     async function loadCurrentData() {
       try {
-        const res = await fetch(DB_URL);
+        const res = await fetch(`${DB_URL}?t=${Date.now()}`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           if (data) {
+            previousBalance = Number(data.balance) || 0;
+            existingLastAdded = Number(data.lastAdded) || 0;
             document.getElementById("valBalance").value = data.balance || "";
             document.getElementById("valTarget").value = data.target || "";
             document.getElementById("valPayout").value = data.payout || "";
@@ -122,17 +127,30 @@
     }
 
     window.submitData = async function() {
-      const payload = {
-        balance: document.getElementById("valBalance").value.trim(),
-        target: document.getElementById("valTarget").value.trim(),
-        payout: document.getElementById("valPayout").value.trim(),
-        tenure: document.getElementById("valTenure").value.trim(),
-        updatedAt: Date.now()
-      };
+      const balStr = document.getElementById("valBalance").value.trim();
+      const targetStr = document.getElementById("valTarget").value.trim();
+      const payoutStr = document.getElementById("valPayout").value.trim();
+      const tenureStr = document.getElementById("valTenure").value.trim();
 
-      if (!payload.balance || !payload.target || !payload.payout || !payload.tenure) {
+      if (!balStr || !targetStr || !payoutStr || !tenureStr) {
         return showMessage("❌ Saare boxes bharna zaroori hai!", "error");
       }
+
+      const newBal = Number(balStr);
+      // Calculate exact added amount (New Balance - Old Balance)
+      let addedAmount = existingLastAdded;
+      if (newBal !== previousBalance) {
+        addedAmount = previousBalance > 0 ? (newBal - previousBalance) : newBal;
+      }
+
+      const payload = {
+        balance: balStr,
+        target: targetStr,
+        payout: payoutStr,
+        tenure: tenureStr,
+        lastAdded: addedAmount,
+        updatedAt: Date.now()
+      };
 
       submitBtn.disabled = true;
       submitBtn.textContent = "Saving...";
@@ -145,7 +163,9 @@
         });
 
         if (!res.ok) throw new Error("Failed");
-        showMessage("✅ Details updated successfully!", "success");
+        previousBalance = newBal;
+        existingLastAdded = addedAmount;
+        showMessage(`✅ Updated! Last Added: Rs. ${addedAmount}`, "success");
       } catch (err) {
         showMessage("❌ Error: Firebase se connect nahi ho paya.", "error");
       } finally {
