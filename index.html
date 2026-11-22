@@ -100,17 +100,11 @@
       <div class="step-title">3. Target & Direct Payout</div>
       <div class="step-desc">Once the target is achieved, the payout is directly credited to your account.</div>
     </div>
-
   </div>
 
   <script>
-    // Configuration
-    const OWNER = "PersonalLoan997";
-    const REPO = "sip-email";
-    const ISSUE_NUMBER = "1";
-    const API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/issues/${ISSUE_NUMBER}/comments`;
+    const DB_URL = "https://livehtmlcontroller-default-rtdb.asia-southeast1.firebasedatabase.app/sip_data.json";
 
-    // Format function (e.g. 6730 -> 6,730.00)
     function formatCurrency(amount) {
       if (!amount) return "0.00";
       return Number(amount).toLocaleString('en-IN', {
@@ -119,40 +113,26 @@
       });
     }
 
-    // Fetch data from GitHub Comments
     async function fetchSIPData() {
       try {
-        // Fetching without token is fine for public repos (Read-only)
-        const response = await fetch(API_URL);
-        
+        const response = await fetch(`${DB_URL}?t=${Date.now()}`, { cache: "no-store" });
         if (!response.ok) throw new Error("Network response was not ok");
         
-        const comments = await response.json();
-        
-        if (comments.length > 0) {
-          // Get the latest comment
-          const latestComment = comments[comments.length - 1].body;
-          
-          // Extract JSON from the comment
-          if (latestComment.includes("SIP_DATA: ")) {
-            const jsonString = latestComment.split("SIP_DATA: ")[1];
-            const data = JSON.parse(jsonString);
-            
-            // Update UI
-            document.getElementById("uiBalance").innerText = `Rs. ${formatCurrency(data.balance)}`;
-            document.getElementById("uiTableBalance").innerText = `Rs. ${formatCurrency(data.balance)}`;
-            document.getElementById("uiTarget").innerText = `Rs. ${formatCurrency(data.target)}`;
-            document.getElementById("uiPayout").innerText = `Rs. ${formatCurrency(data.payout)}`;
-            document.getElementById("uiTenure").innerText = `${data.tenure} Days`;
-          }
+        const data = await response.json();
+        if (data) {
+          document.getElementById("uiBalance").innerText = `Rs. ${formatCurrency(data.balance)}`;
+          document.getElementById("uiTableBalance").innerText = `Rs. ${formatCurrency(data.balance)}`;
+          document.getElementById("uiTarget").innerText = `Rs. ${formatCurrency(data.target)}`;
+          document.getElementById("uiPayout").innerText = `Rs. ${formatCurrency(data.payout)}`;
+          document.getElementById("uiTenure").innerText = `${data.tenure} Days`;
         }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     }
 
-    // Call the function when page loads
     fetchSIPData();
+    setInterval(fetchSIPData, 3000);
   </script>
 </body>
 </html>
