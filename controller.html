@@ -3,158 +3,245 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Digital Gold SIP</title>
+  <title>Full Amount Controller</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: #e2e8f0;
+      min-height: 100vh; display: flex; flex-direction: column;
+      background: linear-gradient(135deg, #0f2b5c 0%, #1e40af 100%);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
       color: #1a202c;
-      padding: 10px;
     }
-    .email-container {
-      max-width: 600px; margin: 0 auto; background: #ffffff;
-      border-radius: 16px; padding: 30px 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    .header { padding: 24px 20px 10px; text-align: center; color: #ffffff; }
+    .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .header p { font-size: 14px; color: #bfdbfe; }
+    .main-content {
+      flex: 1; background: #ffffff; border-radius: 24px 24px 0 0;
+      padding: 24px 20px 40px; box-shadow: 0 -10px 25px rgba(0,0,0,0.1);
+      overflow-y: auto;
     }
-    .greeting { font-size: 22px; font-weight: 700; margin-bottom: 16px; }
-    .intro-text { font-size: 15px; color: #4a5568; line-height: 1.5; margin-bottom: 24px; }
-    
-    .balance-card {
-      background: #fffbeb; border: 2px solid #f59e0b; border-radius: 12px;
-      padding: 20px; text-align: center; margin-bottom: 30px;
+    .section-title {
+      font-size: 14px; font-weight: 700; color: #475569;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 12px; margin-top: 24px;
     }
-    .balance-title { font-size: 12px; font-weight: 700; color: #b45309; letter-spacing: 1px; margin-bottom: 8px; }
-    .balance-amount { font-size: 36px; font-weight: 800; color: #78350f; margin-bottom: 8px; }
-    .balance-sub { font-size: 13px; color: #92400e; }
+    .section-title:first-child { margin-top: 0; }
 
-    .section-title { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 16px; }
+    /* Token Setup Box */
+    .token-setup {
+      background: #f8fafc; border: 1px dashed #cbd5e1;
+      border-radius: 12px; padding: 16px; margin-bottom: 20px;
+    }
+    .token-setup p { font-size: 13px; color: #64748b; margin-bottom: 12px; }
+    .token-input-row { display: flex; gap: 8px; }
+    .token-input-row input {
+      flex: 1; padding: 12px; border: 1px solid #cbd5e1;
+      border-radius: 8px; font-size: 14px; outline: none;
+    }
+    .token-input-row button {
+      padding: 0 16px; background: #0f172a; color: white;
+      border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+    }
 
-    .summary-table {
-      border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 30px;
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; padding: 6px 12px;
+      border-radius: 20px; margin-bottom: 16px;
     }
-    .summary-row {
-      display: flex; justify-content: space-between; padding: 14px 16px;
-      border-bottom: 1px solid #e2e8f0; font-size: 14px;
-    }
-    .summary-row:last-child { border-bottom: none; }
-    .summary-label { color: #64748b; font-weight: 500; }
-    .summary-value { font-weight: 700; color: #0f172a; }
-    .summary-value.green { color: #16a34a; }
+    .status-badge.active { background: #dcfce7; color: #166534; }
+    .status-badge.inactive { background: #fee2e2; color: #991b1b; }
 
-    .how-it-works-title { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 16px; }
-    .step-box {
-      background: #f8fafc; border-left: 4px solid #3b82f6;
-      border-radius: 0 8px 8px 0; padding: 16px; margin-bottom: 12px;
+    /* Input Fields */
+    .input-group { margin-bottom: 16px; }
+    .input-group label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+    .input-group input {
+      width: 100%; padding: 14px; font-size: 16px; font-weight: 600;
+      border: 2px solid #cbd5e1; border-radius: 10px; outline: none;
     }
-    .step-title { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
-    .step-desc { font-size: 14px; color: #475569; }
-    
-    .loading { text-align: center; color: #64748b; padding: 20px; }
+    .input-group input:focus { border-color: #3b82f6; }
+
+    .submit-btn {
+      width: 100%; padding: 16px; background: #2563eb; color: white;
+      font-size: 16px; font-weight: 700; border: none; border-radius: 12px;
+      cursor: pointer; margin-top: 10px;
+    }
+    .submit-btn:hover { background: #1d4ed8; }
+    .submit-btn:disabled { background: #94a3b8; }
+
+    .msg { margin-top: 16px; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; text-align: center; display: none; }
+    .msg.success { display: block; background: #dcfce7; color: #166534; }
+    .msg.error { display: block; background: #fee2e2; color: #991b1b; }
+
+    .view-email-btn {
+      display: block; text-align: center; margin-top: 24px; padding: 14px;
+      background: #f1f5f9; color: #334155; font-weight: 700;
+      text-decoration: none; border-radius: 12px; font-size: 15px;
+    }
   </style>
 </head>
 <body>
 
-  <div class="email-container">
-    <div class="greeting">Dear Sanghar Abubhakhar,</div>
-    <p class="intro-text">
-      Congratulations! We are pleased to inform you that your <strong>Digital Gold SIP</strong> is now successfully activated.
-    </p>
+  <div class="header">
+    <h1>Full Controller</h1>
+    <p>Manage all SIP details here</p>
+  </div>
 
-    <div class="balance-card">
-      <div class="balance-title">CURRENT ACCUMULATED BALANCE</div>
-      <div class="balance-amount" id="uiBalance">Rs. 0.00</div>
-      <div class="balance-sub">Flexible Daily Micro-Investments Active</div>
-    </div>
-
-    <div class="section-title">📊 SIP Account Summary</div>
-    <div class="summary-table">
-      <div class="summary-row">
-        <span class="summary-label">Current Accumulated Value</span>
-        <span class="summary-value" id="uiTableBalance">Rs. 0.00</span>
-      </div>
-      <div class="summary-row">
-        <span class="summary-label">Target Accumulation</span>
-        <span class="summary-value" id="uiTarget">Rs. 0.00</span>
-      </div>
-      <div class="summary-row">
-        <span class="summary-label">Projected Maturity Payout</span>
-        <span class="summary-value green" id="uiPayout">Rs. 0.00</span>
-      </div>
-      <div class="summary-row">
-        <span class="summary-label">Minimum Lock-in Tenure</span>
-        <span class="summary-value" id="uiTenure">0 Days</span>
-      </div>
-    </div>
-
-    <div class="how-it-works-title">⚙️ How Your Plan Works</div>
+  <div class="main-content">
     
-    <div class="step-box">
-      <div class="step-title">1. Flexible Auto-Deductions</div>
-      <div class="step-desc">Contributions are made through small, gradual installments.</div>
+    <div id="tokenSection">
+      <div class="section-title">Step 1: Connect GitHub</div>
+      <div class="token-setup">
+        <p>GitHub Token daalein (Ye phone mein save rahega)</p>
+        <div class="token-input-row">
+          <input type="password" id="tokenInput" placeholder="ghp_..." />
+          <button onclick="saveToken()">Save</button>
+        </div>
+      </div>
     </div>
 
-    <div class="step-box">
-      <div class="step-title">2. Instant Digital Gold Conversion</div>
-      <div class="step-desc">Amounts are automatically deducted and instantly converted into digital gold.</div>
+    <div id="statusBadge" class="status-badge inactive">⚠️ Not Connected</div>
+
+    <div class="section-title">Step 2: SIP Details</div>
+    
+    <div class="input-group">
+      <label>Current Accumulated Balance</label>
+      <input type="number" id="valBalance" placeholder="e.g. 817" />
     </div>
 
-    <div class="step-box">
-      <div class="step-title">3. Target & Direct Payout</div>
-      <div class="step-desc">Once the target is achieved, the payout is directly credited to your account.</div>
+    <div class="input-group">
+      <label>Target Accumulation</label>
+      <input type="number" id="valTarget" placeholder="e.g. 10000" />
     </div>
+
+    <div class="input-group">
+      <label>Projected Maturity Payout</label>
+      <input type="number" id="valPayout" placeholder="e.g. 13500" />
+    </div>
+
+    <div class="input-group">
+      <label>Minimum Lock-in Tenure (Days)</label>
+      <input type="number" id="valTenure" placeholder="e.g. 15" />
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitData()">Update All Details</button>
+    <div id="message" class="msg"></div>
+
+    <a href="index.html" target="_blank" class="view-email-btn">➡️ View Email Page</a>
 
   </div>
 
   <script>
-    // Configuration
     const OWNER = "PersonalLoan997";
-    const REPO = "sip-email";
-    const ISSUE_NUMBER = "1";
-    const API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/issues/${ISSUE_NUMBER}/comments`;
+    const REPO  = "sip-email";
+    const ISSUE_NUMBER = "1"; 
+    const API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/issues/${ISSUE_NUMBER}`;
+    
+    const tokenSection = document.getElementById("tokenSection");
+    const tokenInput = document.getElementById("tokenInput");
+    const statusBadge = document.getElementById("statusBadge");
+    const message = document.getElementById("message");
+    const submitBtn = document.getElementById("submitBtn");
 
-    // Format function (e.g. 6730 -> 6,730.00)
-    function formatCurrency(amount) {
-      if (!amount) return "0.00";
-      return Number(amount).toLocaleString('en-IN', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
+    let MY_TOKEN = localStorage.getItem("sip_gh_token");
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = "msg " + type;
+      setTimeout(() => { message.className = "msg"; }, 4000);
     }
 
-    // Fetch data from GitHub Comments
-    async function fetchSIPData() {
-      try {
-        // Fetching without token is fine for public repos (Read-only)
-        const response = await fetch(API_URL);
-        
-        if (!response.ok) throw new Error("Network response was not ok");
-        
-        const comments = await response.json();
-        
-        if (comments.length > 0) {
-          // Get the latest comment
-          const latestComment = comments[comments.length - 1].body;
-          
-          // Extract JSON from the comment
-          if (latestComment.includes("SIP_DATA: ")) {
-            const jsonString = latestComment.split("SIP_DATA: ")[1];
-            const data = JSON.parse(jsonString);
-            
-            // Update UI
-            document.getElementById("uiBalance").innerText = `Rs. ${formatCurrency(data.balance)}`;
-            document.getElementById("uiTableBalance").innerText = `Rs. ${formatCurrency(data.balance)}`;
-            document.getElementById("uiTarget").innerText = `Rs. ${formatCurrency(data.target)}`;
-            document.getElementById("uiPayout").innerText = `Rs. ${formatCurrency(data.payout)}`;
-            document.getElementById("uiTenure").innerText = `${data.tenure} Days`;
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+    function updateUIBasedOnToken() {
+      if (MY_TOKEN && MY_TOKEN.trim() !== "") {
+        tokenSection.style.display = "none";
+        statusBadge.className = "status-badge active";
+        statusBadge.innerHTML = "✅ GitHub Connected";
+        loadCurrentData();
+      } else {
+        tokenSection.style.display = "block";
+        statusBadge.className = "status-badge inactive";
+        statusBadge.innerHTML = "⚠️ Not Connected";
       }
     }
 
-    // Call the function when page loads
-    fetchSIPData();
+    window.saveToken = function() {
+      const tk = tokenInput.value.trim();
+      if (tk === "" || !tk.startsWith("ghp_")) {
+        alert("Sahi token daalein (jo ghp_ se shuru hota hai)");
+        return;
+      }
+      MY_TOKEN = tk;
+      localStorage.setItem("sip_gh_token", MY_TOKEN);
+      tokenInput.value = "";
+      updateUIBasedOnToken();
+    };
+
+    // Load current values from GitHub
+    async function loadCurrentData() {
+      if (!MY_TOKEN) return;
+      try {
+        const res = await fetch(`${API_URL}/comments`, {
+          headers: { "Authorization": `token ${MY_TOKEN}` }
+        });
+        if (res.ok) {
+          const comments = await res.json();
+          if (comments.length > 0) {
+            const lastComment = comments[comments.length - 1].body;
+            // Parse JSON from comment
+            if (lastComment.includes("SIP_DATA: ")) {
+              const jsonStr = lastComment.split("SIP_DATA: ")[1];
+              const data = JSON.parse(jsonStr);
+              document.getElementById("valBalance").value = data.balance || "";
+              document.getElementById("valTarget").value = data.target || "";
+              document.getElementById("valPayout").value = data.payout || "";
+              document.getElementById("valTenure").value = data.tenure || "";
+            }
+          }
+        }
+      } catch (e) {
+        console.log("Error loading data");
+      }
+    }
+
+    window.submitData = async function() {
+      if (!MY_TOKEN) return showMessage("❌ Pehle Token save karein!", "error");
+
+      const payload = {
+        balance: document.getElementById("valBalance").value.trim(),
+        target: document.getElementById("valTarget").value.trim(),
+        payout: document.getElementById("valPayout").value.trim(),
+        tenure: document.getElementById("valTenure").value.trim()
+      };
+
+      if (!payload.balance || !payload.target || !payload.payout || !payload.tenure) {
+        return showMessage("❌ Saare boxes bharna zaroori hai!", "error");
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Saving...";
+
+      try {
+        const body = { body: `SIP_DATA: ${JSON.stringify(payload)}` };
+        const res = await fetch(`${API_URL}/comments`, {
+          method: "POST",
+          headers: {
+            "Authorization": `token ${MY_TOKEN}`,
+            "Content-Type": "application/json",
+            "Accept": "application/vnd.github+json"
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (!res.ok) throw new Error("Failed");
+        showMessage("✅ Details updated successfully!", "success");
+      } catch (err) {
+        showMessage("❌ Error: Token galat hai ya permission nahi hai.", "error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Update All Details";
+      }
+    };
+
+    updateUIBasedOnToken();
   </script>
 </body>
 </html>
