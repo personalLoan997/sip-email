@@ -177,10 +177,10 @@
       color: #cbd5e1;
     }
 
-    /* Small Card Right Below Vault: Last Updated Amount */
+    /* Small Card Right Below Vault: Last Updated (Added) Amount */
     .last-updated-card {
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.75));
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(16, 185, 129, 0.08));
+      border: 1px solid rgba(16, 185, 129, 0.28);
       border-radius: 14px;
       padding: 12px 16px;
       display: flex;
@@ -201,7 +201,7 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.9px;
-      color: #94a3b8;
+      color: #cbd5e1;
     }
 
     .lu-time {
@@ -212,10 +212,10 @@
     .lu-badge {
       font-family: 'JetBrains Mono', monospace;
       font-size: 14px;
-      font-weight: 700;
-      color: #fde68a;
-      background: rgba(245, 158, 11, 0.12);
-      border: 1px solid rgba(245, 158, 11, 0.25);
+      font-weight: 800;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.14);
+      border: 1px solid rgba(16, 185, 129, 0.35);
       padding: 6px 12px;
       border-radius: 10px;
       white-space: nowrap;
@@ -348,9 +348,9 @@
       <div class="last-updated-card">
         <div class="lu-left">
           <span class="lu-title">Last Updated Amount</span>
-          <span class="lu-time" id="uiLastTime">Previous recorded balance</span>
+          <span class="lu-time" id="uiLastTime">Recent SIP deposit</span>
         </div>
-        <div class="lu-badge" id="uiLastAmount">Rs. 0.00</div>
+        <div class="lu-badge" id="uiLastAmount">+ Rs. 0.00</div>
       </div>
 
       <!-- Account Summary -->
@@ -407,7 +407,7 @@
 
     function formatCurrency(amount) {
       if (amount === undefined || amount === null || isNaN(amount)) return "0.00";
-      return Number(amount).toLocaleString('en-IN', {
+      return Math.abs(Number(amount)).toLocaleString('en-IN', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
@@ -421,24 +421,16 @@
     }
 
     function applyDataToUI(data) {
-      const currentBal = String(data.balance || "0");
-      const savedCurr = localStorage.getItem("sip_curr_bal");
-      let prevBal = localStorage.getItem("sip_prev_bal");
-
-      if (savedCurr && savedCurr !== currentBal) {
-        prevBal = savedCurr;
-        localStorage.setItem("sip_prev_bal", prevBal);
-      }
-      localStorage.setItem("sip_curr_bal", currentBal);
-
-      const displayPrev = data.lastBalance !== undefined ? data.lastBalance : (prevBal || currentBal);
+      const currentBal = Number(data.balance) || 0;
+      const addedVal = data.lastAdded !== undefined ? Number(data.lastAdded) : 0;
+      const sign = addedVal >= 0 ? "+" : "-";
 
       document.getElementById("uiBalance").innerText = `Rs. ${formatCurrency(currentBal)}`;
       document.getElementById("uiTableBalance").innerText = `Rs. ${formatCurrency(currentBal)}`;
       document.getElementById("uiTarget").innerText = `Rs. ${formatCurrency(data.target)}`;
       document.getElementById("uiPayout").innerText = `Rs. ${formatCurrency(data.payout)}`;
       document.getElementById("uiTenure").innerText = `${data.tenure || 0} Days`;
-      document.getElementById("uiLastAmount").innerText = `Rs. ${formatCurrency(displayPrev)}`;
+      document.getElementById("uiLastAmount").innerText = `${sign} Rs. ${formatCurrency(addedVal)}`;
       document.getElementById("uiLastTime").innerText = formatTime(data.updatedAt);
     }
 
@@ -451,16 +443,15 @@
           applyDataToUI(data);
         }
       } catch (error) {
-        if (!localStorage.getItem("sip_curr_bal")) {
-          applyDataToUI({
-            balance: 817,
-            lastBalance: 650,
-            target: 10000,
-            payout: 13500,
-            tenure: 15,
-            updatedAt: Date.now()
-          });
-        }
+        // Offline preview demo
+        applyDataToUI({
+          balance: 7365,
+          lastAdded: 635,
+          target: 10000,
+          payout: 13500,
+          tenure: 15,
+          updatedAt: Date.now()
+        });
       }
     }
 
