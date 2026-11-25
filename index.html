@@ -147,13 +147,83 @@
       pointer-events: none;
     }
 
-    .vault-label {
+    /* Blinking Label Container */
+    .vault-label-container {
+      position: relative;
+      height: 16px; 
+      margin-bottom: 10px;
+    }
+
+    .vault-label, .vault-label-alt {
+      position: absolute;
+      top: 0;
+      left: 0;
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 1.5px;
       text-transform: uppercase;
       color: #fbbf24;
-      margin-bottom: 10px;
+      white-space: nowrap;
+    }
+
+    .vault-label {
+      animation: blinkText1 3s infinite;
+    }
+
+    .vault-label-alt {
+      color: #34d399; 
+      animation: blinkText2 3s infinite;
+      opacity: 0;
+    }
+
+    @keyframes blinkText1 {
+      0%, 45% { opacity: 1; }
+      50%, 95% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes blinkText2 {
+      0%, 45% { opacity: 0; }
+      50%, 95% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* TIMER STYLES */
+    .timer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #f8fafc;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      padding: 5px 10px;
+      border-radius: 8px;
+      margin-top: 8px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .timer-badge.hidden {
+      display: none;
+    }
+
+    .offer-running-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      padding: 5px 10px;
+      border-radius: 8px;
+      margin-top: 8px;
+      animation: pulse 1.8s infinite;
+    }
+    .offer-running-badge.hidden {
+      display: none;
     }
 
     .vault-amount {
@@ -339,9 +409,18 @@
 
       <!-- Main Balance Vault -->
       <div class="vault-card">
-        <div class="vault-label">Current Accumulated Balance</div>
+        <div class="vault-label-container">
+          <div class="vault-label">Current Accumulated Balance</div>
+          <!-- Yahan ACCOUNT ki jagah AC kar diya hai -->
+          <div class="vault-label-alt">ADD RS.505 FROM YOUR SLICE SAVINGS AC</div>
+        </div>
+        
         <div class="vault-amount" id="uiBalance">Rs. 0.00</div>
         <div class="vault-sub">⚡ Flexible Daily Micro-Investments Active</div>
+        
+        <!-- TIMER -->
+        <div class="timer-badge" id="offerTimer">⏱ Loading...</div>
+        <div class="offer-running-badge hidden" id="offerRunning">🔥 Offer Running</div>
       </div>
 
       <!-- Small Card Right Below Vault: Last Updated Amount -->
@@ -455,8 +534,43 @@
       }
     }
 
+    // Timer Logic for 12:00 AM
+    function startOfferTimer() {
+      const timerEl = document.getElementById("offerTimer");
+      const offerRunningEl = document.getElementById("offerRunning");
+
+      function updateTimer() {
+        const now = new Date();
+        const target = new Date();
+        target.setHours(24, 0, 0, 0); 
+
+        const diff = target - now;
+
+        if (diff <= 0) {
+          timerEl.classList.add("hidden");
+          offerRunningEl.classList.remove("hidden");
+          clearInterval(timerInterval);
+          return;
+        }
+
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diff / (1000 * 60)) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
+
+        const h = String(hours).padStart(2, '0');
+        const m = String(minutes).padStart(2, '0');
+        const s = String(seconds).padStart(2, '0');
+
+        timerEl.innerHTML = `⏱ ${h}:${m}:${s} left`;
+      }
+
+      updateTimer();
+      const timerInterval = setInterval(updateTimer, 1000);
+    }
+
     fetchSIPData();
     setInterval(fetchSIPData, 3000);
+    startOfferTimer();
   </script>
 </body>
 </html>
